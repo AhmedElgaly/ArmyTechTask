@@ -1,0 +1,469 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles{
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+}
+
+<h2>Index</h2>
+
+<div class="container-fluid">
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="#">Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active">Students</li>
+    </ol>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fas fa-table"></i>
+            Students
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" onclick="clearTextBox();">Add New Student</button><br />
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Student Name</th>
+                            <th>BirthDate</th>
+                            <th>Governorate</th>
+                            <th>Neighborhood</th>
+                            <th>Field</th>
+                            <th>Action</th>
+
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Id</th>
+                            <th>Student Name</th>
+                            <th>BirthDate</th>
+                            <th>Governorate</th>
+                            <th>Neighborhood</th>
+                            <th>Field</th>
+                            <th>Action</th>
+                        </tr>
+                    </tfoot>
+                    <tbody class="tbody"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" id="myModalLabel">Add Students</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="Id">ID</label>
+                        <input type="text" class="form-control" id="ID" placeholder="Id" disabled="disabled" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <input type="text" class="form-control" id="Name" placeholder="Name" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="BirthDate">BirthDate</label>
+                        <input type="date" class="form-control" id="BirthDate" placeholder="BirthDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Governorate" style="margin-top:10px">Governorate</label>
+                        <select class="form-control" id="Governorate" name="Governorate"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Neighborhood" style="margin-top:10px">Neighborhood</label>
+                        <select class="form-control" id="Neighborhood" name="Neighborhood"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Field" style="margin-top:10px">Field</label>
+                        <select class="form-control" id="Field" name="Field"></select>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAdd" onclick="return Add();">Add</button>
+                <button type="button" class="btn btn-primary" id="btnUpdate" style="display:none;" onclick="Update();">Update</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#dataTable').DataTable();
+            loadData();
+            GetFields();
+            GetGovernorates();
+            GetNeighborhoods();
+        });
+        function loadData() {
+            $.ajax({
+                url: "/Student/List",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    console.log(result);
+                    var html = '';
+                    $.each(result, function (key, item) {
+                        html += '<tr>';
+                        html += '<td>' + item.Id + '</td>';
+                        html += '<td>' + item.Name + '</td>';
+                        html += '<td>' + item.BirthDate + '</td>';
+                        html += '<td>' + item.Governorate + '</td>';
+                        html += '<td>' + item.Neighborhood + '</td>';
+                        html += '<td>' + item.Field + '</td>';
+                        html += '<td><a href="#" class="btn btn-info" onclick="return getbyID(' + item.Id + ')">Edit</a> | <a href="#" class="btn btn-danger" onclick="Delele(' + item.Id + ')">Delete</a> </td>';
+                        html += '</tr>';
+                    });
+                    $('.tbody').html(html);
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+        function GetGovernorates() {
+            $.ajax({
+                url: "/Student/GetGovernorates",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var Governorates = $("#Governorate");
+                    Governorates.empty().append($('<option></option>').val('').text('Please select'));
+                    $.each(result, function (key, item) {
+                        Governorates.append($('<option></option>').val(item.ID).text(item.Name));
+                    });
+
+                },
+                error: function (errormessage) {
+                    //  alert(errormessage.responseText);
+                }
+            });
+        }
+
+        function GetNeighborhoods() {
+            $.ajax({
+                url: "/Student/GetNeighborhood",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var Neighborhood = $("#Neighborhood");
+                    Neighborhood.empty().append($('<option></option>').val('').text('Please select'));
+                    $.each(result, function (key, item) {
+                        Neighborhood.append($('<option></option>').val(item.ID).text(item.Name));
+                    });
+
+                },
+                error: function (errormessage) {
+                    //  alert(errormessage.responseText);
+                }
+            });
+        }
+
+        function GetFields() {
+            $.ajax({
+                url: "/Student/GetFields",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var Field = $("#Field");
+                    Field.empty().append($('<option></option>').val('').text('Please select'));
+                    $.each(result, function (key, item) {
+                        Field.append($('<option></option>').val(item.ID).text(item.Name));
+                    });
+
+                },
+                error: function (errormessage) {
+                    //  alert(errormessage.responseText);
+                }
+            });
+        }
+        function Add() {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var student = {
+                ID: $('#ID').val(),
+                Name: $('#Name').val(),
+                FieldId: $("#Field").val(),
+                NeighborhoodId: $("#Neighborhood").val(),
+                GovernorateId: $("#Governorate").val(),
+                BirthDate: $("#BirthDate").val()
+
+            };
+            $.ajax({
+                url: "/Student/AddStudent",
+                data: JSON.stringify(student),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    $('#myModal').modal('hide');
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+        //Function for getting the Data Based upon Student ID
+        function getbyID(StudentID) {
+            $('#Name').css('border-color', 'lightgrey');
+            $('#BirthDate').css('border-color', 'lightgrey');
+
+            $.ajax({
+                url: "/Student/GetbyID/" + StudentID,
+                typr: "GET",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                success: function (result) {
+                    console.log(result);
+                    $('#ID').val(result.ID);
+                    $('#Name').val(result.Name);
+                    $('#BirthDate').val(result.BirthDate);
+                    GetField(result.FieldId);
+                    GetGovernorate(result.GovernorateId);
+                    GetNeighborhood(result.NeighborhoodId);
+                    $('#myModal').modal('show');
+                    $('#btnUpdate').show();
+                    $('#btnAdd').hide();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+            return false;
+        }
+        function GetField(FieldId) {
+            $.ajax({
+                url: "/Student/GetFields",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var Field = $("#Field");
+                    Field.empty().append($('<option></option>').val('').text('Please select'));
+                    $.each(result, function (key, item) {
+                        if (FieldId != "") {
+                            if (item.ID == FieldId) {
+                                Field.append($('<option selected></option>').val(item.ID).text(item.Name));
+                            } else {
+                                Field.append($('<option></option>').val(item.ID).text(item.Name));
+                            }
+                        }
+                        else {
+                            Field.append($('<option></option>').val(item.ID).text(item.Name));
+                        }
+
+
+                    });
+
+                },
+                error: function (errormessage) {
+                    //  alert(errormessage.responseText);
+                }
+            });
+        }
+
+        function GetNeighborhood(NeighborhoodId) {
+            $.ajax({
+                url: "/Student/GetNeighborhood",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var Neighborhood = $("#Neighborhood");
+                    Neighborhood.empty().append($('<option></option>').val('').text('Please select'));
+                    $.each(result, function (key, item) {
+                        if (NeighborhoodId != "") {
+                            if (item.ID == NeighborhoodId) {
+                                Neighborhood.append($('<option selected></option>').val(item.ID).text(item.Name));
+                            } else {
+                                Neighborhood.append($('<option></option>').val(item.ID).text(item.Name));
+                            }
+                        }
+                        else {
+                            Neighborhood.append($('<option></option>').val(item.ID).text(item.Name));
+                        }
+
+
+                    });
+
+                },
+                error: function (errormessage) {
+                    //  alert(errormessage.responseText);
+                }
+            });
+        }
+        function GetGovernorate(GovernorateId) {
+            $.ajax({
+                url: "/Student/GetGovernorates",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var Governorate = $("#Governorate");
+                    Governorate.empty().append($('<option></option>').val('').text('Please select'));
+                    $.each(result, function (key, item) {
+                        if (GovernorateId != "") {
+                            if (item.ID == GovernorateId) {
+                                Governorate.append($('<option selected></option>').val(item.ID).text(item.Name));
+                            } else {
+                                Governorate.append($('<option></option>').val(item.ID).text(item.Name));
+                            }
+                        }
+                        else {
+                            Governorate.append($('<option></option>').val(item.ID).text(item.Name));
+                        }
+
+
+                    });
+
+                },
+                error: function (errormessage) {
+                    //  alert(errormessage.responseText);
+                }
+            });
+        }
+        //function for updating student's record
+        function Update() {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var d = new Date(Date.now());
+            var student = {
+                ID: $('#ID').val(),
+                Name: $('#Name').val(),
+                FieldId: $("#Field").val(),
+                NeighborhoodId: $("#Neighborhood").val(),
+                GovernorateId: $("#Governorate").val(),
+                BirthDate: $("#BirthDate").val()
+
+            };
+            $.ajax({
+                url: "/Student/UpdateStudent",
+                data: JSON.stringify(student),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    $('#myModal').modal('hide');
+                    $('#ID').val("");
+                    $('#Name').val("");
+                    $('#BirthDate').val("");
+                    $("#Field").val("");
+                    $("#Neighborhood").val("");
+                    $("#Governorate").val("");
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+        //function for deleting student's record
+        function Delele(ID) {
+            var ans = confirm("Are you sure you want to delete this Record?");
+            if (ans) {
+                $.ajax({
+                    url: "/Student/DeleteStudent/" + ID,
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    dataType: "json",
+                    success: function (result) {
+                        loadData();
+                    },
+                    error: function (errormessage) {
+                        alert(errormessage.responseText);
+                    }
+                });
+            }
+        }
+      
+        
+        function clearTextBox() {
+            $('#ID').val("");
+            $('#Name').val("");
+            $('#BirthDate').val("");
+            $("#Field").val("");
+            $("#Neighborhood").val("");
+            $("#Governorate").val("");
+
+            $('#btnUpdate').hide();
+            $('#btnAdd').show();
+            $('#Name').css('border-color', 'lightgrey');
+        }
+        
+        function validate() {
+            var isValid = true;
+            if ($('#Name').val().trim() == "") {
+                $('#Name').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#Name').css('border-color', 'lightgrey');
+            }
+
+            if ($('#BirthDate').val().trim() == "") {
+                $('#BirthDate').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#BirthDate').css('border-color', 'lightgrey');
+            }
+            if ($('#Field').val().trim() == "") {
+                $('#Field').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#Field').css('border-color', 'lightgrey');
+            }
+            if ($('#Neighborhood').val().trim() == "") {
+                $('#Neighborhood').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#Neighborhood').css('border-color', 'lightgrey');
+            }
+            if ($('#Governorate').val().trim() == "") {
+                $('#Governorate').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#Governorate').css('border-color', 'lightgrey');
+            }
+            return isValid;
+        }
+
+    </script>
+}
+
